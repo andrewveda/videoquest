@@ -119,14 +119,11 @@
   <script>
     const quizData = [
       {
-        q: "What happens first in the 'Dirk Gently’s Holistic Detective Agency' trailer?",
+        q: "Give your complete undivided attention!",
         options: [
-          "Dirk Gently introduces himself as a detective.",
-          "A voice describes a humdrum and mundane life.",
-          "Someone mentions finding a paw print.",
-          "A dog is threatened to be thrown off a bridge."
+          "Headphones on. Captions on. Note taking mode on. Distractions off."
         ],
-        correct: 1,
+        correct: 0,
         video: "https://www.youtube.com/watch?v=NquuITL9-ZA"
       }
     ];
@@ -211,9 +208,9 @@
         optionsEl.appendChild(btn);
       });
 
-      // Lock next button for 60s
+      // Lock next button for 480s
       nextBtn.disabled = true;
-      let countdown = 60;
+      let countdown = 480;
       nextBtn.innerText = `Next ➡️ (wait ${countdown}s)`;
       const interval = setInterval(() => {
         countdown--;
