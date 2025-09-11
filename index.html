@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>V for Video! 🌌</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(ellipse at bottom, #0b0c1b 0%, #000000 100%);
+      color: white;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    }
+    .question {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    button {
+      padding: 1rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #1f1f2e;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #343454;
+    }
+    button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
+    .correct {
+      background-color: green !important;
+    }
+    .wrong {
+      background-color: red !important;
+    }
+    #scoreCard {
+      margin-top: 2rem;
+      font-size: 1.2rem;
+    }
+    #timer, #wrongCounter, #progressTracker {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      color: #ffd700;
+    }
+    #restartBtn {
+      margin-top: 2rem;
+      padding: 0.7rem 2rem;
+      font-size: 1.1rem;
+      background-color: #444466;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+    }
+    #nameForm {
+      margin-bottom: 1.5rem;
+    }
+    #nameInput {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: none;
+      margin-right: 0.5rem;
+    }
+    #videoContainer {
+      margin: 1rem 0;
+    }
+    #nextBtn {
+      margin-top: 1rem;
+      padding: 0.7rem 2rem;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      background-color: #1f1f2e;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="quizContainer">
+    <div id="nameForm">
+      <input type="text" id="nameInput" placeholder="Enter your name" />
+      <button onclick="beginQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quizContent" style="display:none;">
+      <div id="timer">⏳ Time: 0s</div>
+      <div id="wrongCounter">❌ Wrong Attempts: 0</div>
+      <div id="progressTracker">📍 Question 1 of 5</div>
+      <div class="question" id="question">Loading...</div>
+      <div id="videoContainer"></div>
+      <div class="options" id="options"></div>
+      <button id="nextBtn" disabled>Next ➡️ (wait 60s)</button>
+      <div id="scoreCard"></div>
+      <button id="restartBtn" style="display: none;">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        q: "What happens first in the 'Dirk Gently’s Holistic Detective Agency' trailer?",
+        options: [
+          "Dirk Gently introduces himself as a detective.",
+          "A voice describes a humdrum and mundane life.",
+          "Someone mentions finding a paw print.",
+          "A dog is threatened to be thrown off a bridge."
+        ],
+        correct: 1,
+        video: "https://www.youtube.com/watch?v=NquuITL9-ZA"
+      }
+    ];
+
+    let current = 0;
+    let correctCount = 0;
+    let totalWrongGuesses = 0;
+    let startTime;
+    let timerInterval;
+    let playerName = "";
+    let guessesPerQuestion = [];
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const timerEl = document.getElementById("timer");
+    const wrongCounterEl = document.getElementById("wrongCounter");
+    const progressTracker = document.getElementById("progressTracker");
+    const scoreCard = document.getElementById("scoreCard");
+    const restartBtn = document.getElementById("restartBtn");
+    const videoContainer = document.getElementById("videoContainer");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function beginQuiz() {
+      const nameField = document.getElementById("nameInput");
+      if (!nameField.value.trim()) {
+        alert("Please enter your name!");
+        return;
+      }
+      playerName = nameField.value.trim();
+      document.getElementById("nameForm").style.display = "none";
+      document.getElementById("quizContent").style.display = "block";
+      startQuiz();
+    }
+
+    function startQuiz() {
+      current = 0;
+      correctCount = 0;
+      totalWrongGuesses = 0;
+      guessesPerQuestion = [];
+      startTime = Date.now();
+      timerEl.innerText = "⏳ Time: 0s";
+      wrongCounterEl.innerText = `❌ Wrong Attempts: 0`;
+      scoreCard.innerHTML = "";
+      restartBtn.style.display = "none";
+      loadQuestion();
+      startTimer();
+    }
+
+    function convertToEmbed(url) {
+      return url.replace("watch?v=", "embed/");
+    }
+
+    function loadQuestion() {
+      if (current >= quizData.length) {
+        return showScore();
+      }
+      const data = quizData[current];
+      guessesPerQuestion[current] = 0;
+
+      questionEl.innerText = data.q;
+      progressTracker.innerText = `📍 Question ${current + 1} of ${quizData.length}`;
+
+      // Load video with fullscreen support
+      const embedUrl = convertToEmbed(data.video);
+      videoContainer.innerHTML = `
+        <iframe
+          width="100%"
+          height="315"
+          src="${embedUrl}"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen>
+        </iframe>
+      `;
+
+      optionsEl.innerHTML = "";
+      data.options.forEach((option, index) => {
+        const btn = document.createElement("button");
+        btn.innerText = option;
+        const correctAnswerString = data.options[data.correct];
+        btn.onclick = () => handleAnswer(btn, correctAnswerString);
+        optionsEl.appendChild(btn);
+      });
+
+      // Lock next button for 60s
+      nextBtn.disabled = true;
+      let countdown = 60;
+      nextBtn.innerText = `Next ➡️ (wait ${countdown}s)`;
+      const interval = setInterval(() => {
+        countdown--;
+        nextBtn.innerText = countdown > 0 
+          ? `Next ➡️ (wait ${countdown}s)` 
+          : "Next ➡️";
+        if (countdown <= 0) {
+          clearInterval(interval);
+          nextBtn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    function handleAnswer(button, correctAnswer) {
+      guessesPerQuestion[current]++;
+      const isCorrect = button.innerText === correctAnswer;
+
+      if (isCorrect) {
+        correctCount++;
+        button.classList.add("correct");
+      } else {
+        totalWrongGuesses++;
+        wrongCounterEl.innerText = `❌ Wrong Attempts: ${totalWrongGuesses}`;
+        button.classList.add("wrong");
+        setTimeout(() => {
+          button.classList.remove("wrong");
+        }, 500);
+      }
+    }
+
+    nextBtn.onclick = () => {
+      current++;
+      loadQuestion();
+    };
+
+    function showScore() {
+      clearInterval(timerInterval);
+      const totalTime = Math.floor((Date.now() - startTime) / 1000);
+      questionEl.innerText = "🎉 Quiz Completed!";
+      optionsEl.innerHTML = "";
+      progressTracker.innerText = "";
+      videoContainer.innerHTML = "";
+      nextBtn.style.display = "none";
+      scoreCard.innerHTML = `
+        <p>👤 Player: ${playerName}</p>
+        <p>✅ Correct Answers: ${correctCount} / ${quizData.length}</p>
+        <p>❌ Wrong Attempts: ${totalWrongGuesses}</p>
+        <p>⏱️ Time Taken: ${totalTime} seconds</p>
+        <p>📝 Guesses per Question: ${guessesPerQuestion.join(", ")}</p>
+      `;
+      restartBtn.style.display = "inline-block";
+
+      // ✅ Send results to Google Sheets
+      fetch("https://script.google.com/macros/s/AKfycbwseKlRX_H_8BO7ZW30JZVhUMNq1iimlTwvINSNa8CsInxBNs4Iy0MLJqNzPIWpxakJ/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questId: "Quest 3",   // You can change this per quiz
+          name: playerName,
+          correct: correctCount,
+          wrong: totalWrongGuesses,
+          time: totalTime,
+          guesses: guessesPerQuestion
+        })
+      });
+    }
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        timerEl.innerText = `⏳ Time: ${elapsed}s`;
+      }, 1000);
+    }
+
+    restartBtn.onclick = () => {
+      document.getElementById("quizContent").style.display = "none";
+      document.getElementById("nameForm").style.display = "block";
+      document.getElementById("nameInput").value = "";
+      nextBtn.style.display = "inline-block";
+    };
+  </script>
+</body>
+</html>
