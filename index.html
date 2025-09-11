@@ -136,6 +136,18 @@
     let playerName = "";
     let guessesPerQuestion = [];
 
+    // Pause/resume variables
+    let timerElapsedWhenPaused = 0;
+    let timerPaused = false;
+    let timerLastPause = 0;
+
+    let nextCountdown = 0;
+    let nextCountdownInterval = null;
+    let nextCountdownPaused = false;
+    let nextCountdownElapsedWhenPaused = 0;
+    let nextCountdownLastPause = 0;
+    let nextCountdownResumeValue = 0;
+
     const questionEl = document.getElementById("question");
     const optionsEl = document.getElementById("options");
     const timerEl = document.getElementById("timer");
@@ -164,6 +176,10 @@
       totalWrongGuesses = 0;
       guessesPerQuestion = [];
       startTime = Date.now();
+      timerElapsedWhenPaused = 0;
+      timerPaused = false;
+      nextCountdownElapsedWhenPaused = 0;
+      nextCountdownPaused = false;
       timerEl.innerText = "⏳ Time: 0s";
       wrongCounterEl.innerText = `❌ Wrong Attempts: 0`;
       scoreCard.innerHTML = "";
@@ -210,18 +226,10 @@
 
       // Lock next button for 480s
       nextBtn.disabled = true;
-      let countdown = 480;
-      nextBtn.innerText = `Next ➡️ (wait ${countdown}s)`;
-      const interval = setInterval(() => {
-        countdown--;
-        nextBtn.innerText = countdown > 0 
-          ? `Next ➡️ (wait ${countdown}s)` 
-          : "Next ➡️";
-        if (countdown <= 0) {
-          clearInterval(interval);
-          nextBtn.disabled = false;
-        }
-      }, 1000);
+      nextCountdown = 480;
+      nextBtn.innerText = `Next ➡️ (wait ${nextCountdown}s)`;
+      clearInterval(nextCountdownInterval);
+      nextCountdownInterval = startNextCountdown();
     }
 
     function handleAnswer(button, correctAnswer) {
@@ -248,7 +256,8 @@
 
     function showScore() {
       clearInterval(timerInterval);
-      const totalTime = Math.floor((Date.now() - startTime) / 1000);
+      clearInterval(nextCountdownInterval);
+      const totalTime = Math.floor((Date.now() - startTime - timerElapsedWhenPaused) / 1000);
       questionEl.innerText = "🎉 Quiz Completed!";
       optionsEl.innerHTML = "";
       progressTracker.innerText = "";
@@ -280,9 +289,34 @@
     }
 
     function startTimer() {
+      clearInterval(timerInterval);
       timerInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        if (timerPaused) return;
+        const elapsed = Math.floor((Date.now() - startTime - timerElapsedWhenPaused) / 1000);
         timerEl.innerText = `⏳ Time: ${elapsed}s`;
+      }, 1000);
+    }
+
+    function startNextCountdown() {
+      let lastUpdate = Date.now();
+      return setInterval(() => {
+        if (nextCountdownPaused) {
+          lastUpdate = Date.now();
+          return;
+        }
+        const now = Date.now();
+        // Reduce countdown by number of seconds since last tick
+        let diff = Math.floor((now - lastUpdate) / 1000);
+        if (diff < 1) diff = 1;
+        nextCountdown -= diff;
+        lastUpdate = now;
+        nextBtn.innerText = nextCountdown > 0 
+          ? `Next ➡️ (wait ${nextCountdown}s)` 
+          : "Next ➡️";
+        if (nextCountdown <= 0) {
+          clearInterval(nextCountdownInterval);
+          nextBtn.disabled = false;
+        }
       }, 1000);
     }
 
@@ -292,6 +326,43 @@
       document.getElementById("nameInput").value = "";
       nextBtn.style.display = "inline-block";
     };
+
+    // Tab visibility pause/resume logic
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "hidden") {
+        // Pause timer
+        if (!timerPaused && timerInterval) {
+          timerPaused = true;
+          timerLastPause = Date.now();
+        }
+        // Pause countdown
+        if (!nextCountdownPaused && nextCountdownInterval) {
+          nextCountdownPaused = true;
+          nextCountdownLastPause = Date.now();
+        }
+      } else if (document.visibilityState === "visible") {
+        // Resume timer
+        if (timerPaused && timerInterval) {
+          const pauseDuration = Date.now() - timerLastPause;
+          timerElapsedWhenPaused += pauseDuration;
+          timerPaused = false;
+        }
+        // Resume countdown
+        if (nextCountdownPaused && nextCountdownInterval) {
+          const pauseDuration = Math.floor((Date.now() - nextCountdownLastPause) / 1000);
+          nextCountdown -= pauseDuration;
+          if (nextCountdown < 0) nextCountdown = 0;
+          nextCountdownPaused = false;
+          nextBtn.innerText = nextCountdown > 0 
+            ? `Next ➡️ (wait ${nextCountdown}s)` 
+            : "Next ➡️";
+          if (nextCountdown <= 0) {
+            clearInterval(nextCountdownInterval);
+            nextBtn.disabled = false;
+          }
+        }
+      }
+    });
   </script>
 </body>
 </html>
