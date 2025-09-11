@@ -136,17 +136,17 @@
     let playerName = "";
     let guessesPerQuestion = [];
 
-    // Pause/resume variables
+    // Timer pause/resume
     let timerElapsedWhenPaused = 0;
     let timerPaused = false;
     let timerLastPause = 0;
 
-    let nextCountdown = 0;
+    // Next countdown with pause/resume
+    let nextCountdown = 480;
+    let nextCountdownEnd = null;
     let nextCountdownInterval = null;
     let nextCountdownPaused = false;
-    let nextCountdownElapsedWhenPaused = 0;
-    let nextCountdownLastPause = 0;
-    let nextCountdownResumeValue = 0;
+    let nextCountdownRemaining = 0;
 
     const questionEl = document.getElementById("question");
     const optionsEl = document.getElementById("options");
@@ -178,8 +178,6 @@
       startTime = Date.now();
       timerElapsedWhenPaused = 0;
       timerPaused = false;
-      nextCountdownElapsedWhenPaused = 0;
-      nextCountdownPaused = false;
       timerEl.innerText = "⏳ Time: 0s";
       wrongCounterEl.innerText = `❌ Wrong Attempts: 0`;
       scoreCard.innerHTML = "";
@@ -202,7 +200,6 @@
       questionEl.innerText = data.q;
       progressTracker.innerText = `📍 Question ${current + 1} of ${quizData.length}`;
 
-      // Load video with fullscreen support
       const embedUrl = convertToEmbed(data.video);
       videoContainer.innerHTML = `
         <iframe
@@ -224,12 +221,12 @@
         optionsEl.appendChild(btn);
       });
 
-      // Lock next button for 480s
       nextBtn.disabled = true;
       nextCountdown = 480;
-      nextBtn.innerText = `Next ➡️ (wait ${nextCountdown}s)`;
+      nextCountdownEnd = Date.now() + nextCountdown * 1000;
+      updateNextCountdown();
       clearInterval(nextCountdownInterval);
-      nextCountdownInterval = startNextCountdown();
+      nextCountdownInterval = setInterval(updateNextCountdown, 1000);
     }
 
     function handleAnswer(button, correctAnswer) {
@@ -272,13 +269,12 @@
       `;
       restartBtn.style.display = "inline-block";
 
-      // ✅ Send results to Google Sheets
       fetch("https://script.google.com/macros/s/AKfycbwseKlRX_H_8BO7ZW30JZVhUMNq1iimlTwvINSNa8CsInxBNs4Iy0MLJqNzPIWpxakJ/exec", {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          questId: "Quest 23",   // You can change this per quiz
+          questId: "Quest 23",
           name: playerName,
           correct: correctCount,
           wrong: totalWrongGuesses,
@@ -297,27 +293,17 @@
       }, 1000);
     }
 
-    function startNextCountdown() {
-      let lastUpdate = Date.now();
-      return setInterval(() => {
-        if (nextCountdownPaused) {
-          lastUpdate = Date.now();
-          return;
-        }
-        const now = Date.now();
-        // Reduce countdown by number of seconds since last tick
-        let diff = Math.floor((now - lastUpdate) / 1000);
-        if (diff < 1) diff = 1;
-        nextCountdown -= diff;
-        lastUpdate = now;
-        nextBtn.innerText = nextCountdown > 0 
-          ? `Next ➡️ (wait ${nextCountdown}s)` 
-          : "Next ➡️";
-        if (nextCountdown <= 0) {
-          clearInterval(nextCountdownInterval);
-          nextBtn.disabled = false;
-        }
-      }, 1000);
+    function updateNextCountdown() {
+      if (nextCountdownPaused) return;
+      let remaining = Math.floor((nextCountdownEnd - Date.now()) / 1000);
+      if (remaining <= 0) {
+        clearInterval(nextCountdownInterval);
+        nextBtn.disabled = false;
+        nextBtn.innerText = "Next ➡️";
+      } else {
+        nextBtn.disabled = true;
+        nextBtn.innerText = `Next ➡️ (wait ${remaining}s)`;
+      }
     }
 
     restartBtn.onclick = () => {
@@ -327,39 +313,28 @@
       nextBtn.style.display = "inline-block";
     };
 
-    // Tab visibility pause/resume logic
     document.addEventListener("visibilitychange", function() {
       if (document.visibilityState === "hidden") {
-        // Pause timer
         if (!timerPaused && timerInterval) {
           timerPaused = true;
           timerLastPause = Date.now();
         }
-        // Pause countdown
         if (!nextCountdownPaused && nextCountdownInterval) {
           nextCountdownPaused = true;
-          nextCountdownLastPause = Date.now();
+          nextCountdownRemaining = Math.floor((nextCountdownEnd - Date.now()) / 1000);
+          clearInterval(nextCountdownInterval);
         }
       } else if (document.visibilityState === "visible") {
-        // Resume timer
         if (timerPaused && timerInterval) {
           const pauseDuration = Date.now() - timerLastPause;
           timerElapsedWhenPaused += pauseDuration;
           timerPaused = false;
         }
-        // Resume countdown
-        if (nextCountdownPaused && nextCountdownInterval) {
-          const pauseDuration = Math.floor((Date.now() - nextCountdownLastPause) / 1000);
-          nextCountdown -= pauseDuration;
-          if (nextCountdown < 0) nextCountdown = 0;
+        if (nextCountdownPaused) {
+          nextCountdownEnd = Date.now() + nextCountdownRemaining * 1000;
           nextCountdownPaused = false;
-          nextBtn.innerText = nextCountdown > 0 
-            ? `Next ➡️ (wait ${nextCountdown}s)` 
-            : "Next ➡️";
-          if (nextCountdown <= 0) {
-            clearInterval(nextCountdownInterval);
-            nextBtn.disabled = false;
-          }
+          updateNextCountdown();
+          nextCountdownInterval = setInterval(updateNextCountdown, 1000);
         }
       }
     });
