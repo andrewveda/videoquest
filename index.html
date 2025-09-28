@@ -6,147 +6,765 @@
   <title>V for Video! 🌌</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: radial-gradient(ellipse at bottom, #0b0c1b 0%, #000000 100%);
-      color: white;
-      text-align: center;
+      color: white; text-align: center;
     }
     .container {
-      max-width: 800px;
-      margin: 2rem auto;
+      max-width: 800px; margin: 2rem auto;
       background: rgba(255, 255, 255, 0.05);
-      padding: 2rem;
-      border-radius: 15px;
+      padding: 2rem; border-radius: 15px;
       box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
     }
-    .question {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .options {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
+    .question { font-size: 1.5rem; margin-bottom: 1rem; }
+    .options { display: flex; flex-direction: column; gap: 1rem; }
     button {
-      padding: 1rem;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      background-color: #1f1f2e;
-      color: white;
+      padding: 1rem; border: none; border-radius: 10px;
+      font-size: 1rem; cursor: pointer;
+      background-color: #1f1f2e; color: white;
       transition: background-color 0.3s ease;
     }
-    button:hover {
-      background-color: #343454;
-    }
-    button:disabled {
-      background-color: #555;
-      cursor: not-allowed;
-    }
-    .correct {
-      background-color: green !important;
-    }
-    .wrong {
-      background-color: red !important;
-    }
-    #scoreCard {
-      margin-top: 2rem;
-      font-size: 1.2rem;
-    }
-    #timer, #wrongCounter, #progressTracker {
-      font-size: 1rem;
-      margin-bottom: 1rem;
-      color: #ffd700;
-    }
-    #restartBtn {
-      margin-top: 2rem;
-      padding: 0.7rem 2rem;
-      font-size: 1.1rem;
-      background-color: #444466;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      color: white;
-    }
-    #nameForm {
-      margin-bottom: 1.5rem;
-    }
-    #nameInput {
-      padding: 0.5rem;
-      font-size: 1rem;
-      border-radius: 5px;
-      border: none;
-      margin-right: 0.5rem;
-    }
-    #videoContainer {
-      margin: 1rem 0;
-    }
-    #nextBtn {
-      margin-top: 1rem;
-      padding: 0.7rem 2rem;
-      font-size: 1rem;
-      border-radius: 10px;
-      border: none;
-      background-color: #1f1f2e;
-      color: white;
-    }
+    button:hover { background-color: #343454; }
+    button:disabled { background-color: #555; cursor: not-allowed; }
+    .correct { background-color: green !important; }
+    .wrong { background-color: red !important; }
+    #scoreCard { margin-top: 2rem; font-size: 1.2rem; }
+    #timer, #wrongCounter, #progressTracker { font-size: 1rem; margin-bottom: 1rem; color: #ffd700; }
+    #restartBtn { margin-top: 2rem; padding: 0.7rem 2rem; font-size: 1.1rem; background-color: #444466; border: none; border-radius: 10px; cursor: pointer; color: white; }
+    #nameForm { margin-bottom: 1.5rem; }
+    #nameInput { padding: 0.5rem; font-size: 1rem; border-radius: 5px; border: none; margin-right: 0.5rem; }
+    #videoContainer { margin: 1rem 0; }
+    #nextBtn { margin-top: 1rem; padding: 0.7rem 2rem; font-size: 1rem; border-radius: 10px; border: none; background-color: #1f1f2e; color: white; }
+/* Directory Button Grid */
+#videoList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Card-like Buttons with Neon Glow */
+#videoList button {
+  padding: 1rem 1.2rem;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #F0EDEE;
+  font-weight: 500;
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #5D5D81, #8C7B92); /* warm orange to pink */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+}
+
+/* Hover Glow Effect */
+#videoList button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffd700;
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ff8c00;
+}
+
+/* Optional: Add subtle animation on load */
+#videoList button {
+  opacity: 0;
+  animation: fadeInUp 0.5s forwards;
+  animation-delay: calc(var(--i) * 0.05s);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
   </style>
 </head>
 <body>
   <div class="container" id="quizContainer">
+    <!-- Step 1: Name Form -->
     <div id="nameForm">
       <input type="text" id="nameInput" placeholder="Enter your name" />
-      <button onclick="beginQuiz()">Start Quiz</button>
+      <button onclick="showDirectory()">Start</button>
     </div>
 
+    <!-- Step 2: Directory -->
+    <div id="directory" style="display:none;">
+      <h2>🎬 Choose Your Quest</h2>
+      <div id="videoList"></div>
+    </div>
+
+    <!-- Step 3: Quiz Content -->
     <div id="quizContent" style="display:none;">
-      <div id="timer">⏳ Time: 0s</div>
+      <div id="timer">⏳ Time: 0s | 🎬 Watched: 0s</div>
       <div id="wrongCounter">❌ Wrong Attempts: 0</div>
-      <div id="progressTracker">📍 Question 1 of 5</div>
+      <div id="progressTracker">📍 Question 1</div>
       <div class="question" id="question">Loading...</div>
       <div id="videoContainer"></div>
       <div class="options" id="options"></div>
-      <button id="nextBtn" disabled>Next ➡️ (wait 60s)</button>
+      <button id="nextBtn" disabled>Next ➡️ (Watch 0s to unlock)</button>
       <div id="scoreCard"></div>
       <button id="restartBtn" style="display: none;">Restart</button>
     </div>
   </div>
 
+  <script src="https://www.youtube.com/iframe_api"></script>
+
   <script>
+    // 🔹 Add multiple videos here
     const quizData = [
-      {
-        q: "Give your complete undivided attention!",
-        options: [
-          "Headphones on. Full screen on. Captions on. Note taking mode on. Distractions off."
-        ],
+            {
+        questId: "Video 1",
+        title: "The Power of Immersion ✨🏅",
+        q: "Tony Robbins",
+        options: ["Live and Breathe English!"],
         correct: 0,
-        video: "https://www.youtube.com/watch?v=NquuITL9-ZA"
+        video: "https://www.youtube.com/watch?v=hH2GRacDw-I",
+        watchTarget: 80
+      },
+            {
+        questId: "Video 4",
+        title: "Communication is 4D Chess! ✨",
+        q: "Patrick Bet David on the importance of preparation!",
+        options: ["Every minute spent in this quest is an investment in yourself!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=xIYCaZJTM80",
+        watchTarget: 80
+      },
+            {
+        questId: "Video 6",
+        title: "Alan Watts Chinese Farmer ✨",
+        q: "You cannot control every event, but you can control your response!",
+        options: ["Not every setback is bad, not every success is final. Keep learning from both."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=JdQdAUj_ShU",
+        watchTarget: 120
+      },
+{
+        questId: "Video 38",
+        title: "🎬📗 Quentin Tarantino on Sergio Leone ✨",
+        q: "Respond to the elements as a whole!",
+        options: ["Focus on what you feel and what you analyse."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=HZ0Pz4BzgCk",
+        watchTarget: 120
+      },
+            {
+        questId: "Video 5",
+        title: "🎬 Madmen 🎬 Nylons ✨",
+        q: "Don Draper. Great communicators do not just sell products. They sell emotions.",
+        options: ["Every idea becomes powerful when you wrap it in a story."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=V8Pukto7hfQ",
+        watchTarget: 90
+      },
+            {
+        questId: "Video 7",
+        title: "🎬 Game of Thrones 🎬 Cersei on Power ✨",
+        q: "Neils Bohr: The Opposite of a good idea is another good idea!",
+        options: ["Context matters!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=1D9yLmyJWb4",
+        watchTarget: 120
+      },
+             {
+        questId: "Video 33",
+        title: "🎬 Game of Thrones 🎬 Where does Power reside?✨",
+        q: "Critically analyse always!",
+        options: ["Context matters, as usual!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=2W0nVisWla4",
+        watchTarget: 240
+      },
+            {
+        questId: "Video 9",
+        title: "🎬 Spider Man Homecoming 🎬✨",
+        q: "With great power comes great responsibility. Reverse is also true. With great responsibiity comes great power.",
+        options: ["The opposite of a good idea is another good idea!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=9esCA8_EPeY",
+        watchTarget: 120
+      },
+            {
+        questId: "Video 67",
+        title: "🎬 The Rhodesia Solution 🎬 Yes Minister ✨",
+        q: "Brainstorming, preparation, Reframing.",
+        options: ["How you present data changes the meaning!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=pGJH_-S_MGs",
+        watchTarget: 240
+      },
+            {
+        questId: "Video 40",
+        title: "🎬 BBC Sherlock 🎬✨",
+        q: "Communication is anything that involves you. An expert communicator leads others. Completely in charge.",
+        options: ["CONSTANT VIGILANCE!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=-bBHT158E0s",
+        watchTarget: 120
+      },
+            {
+        questId: "Video 10",
+        title: "🎬 Madmen 🎬 It's Toasted ✨",
+        q: "Make them think what you want them to think! Words DO NOT matter. IDEAS MATTER",
+        options: ["What is not said is more powerful than what is said."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=8SsnkXH2mQY",
+        watchTarget: 340
+      },
+            {
+        questId: "Video 12",
+        title: "🎬 Wednesday 🎬 Trailer✨",
+        q: "Your uniqueness is your edge. Curiosity fuels genius!",
+        options: ["Think differently, act boldly."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=03u4xyj0TH4",
+        watchTarget: 110
+      },
+            {
+        questId: "Video 14",
+        title: "🎬 The Queen's Gambit 🎬Trailer✨",
+        q: "You have to the process to enjoy the result.",
+        options: ["Effort is an achievement!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=oZn3qSgmLqI",
+        watchTarget: 150
+      },
+             {
+        questId: "Video 32",
+        title: "🎬 V for Vendetta 🎬 V's monologue✨",
+        q: "Make an impact!",
+        options: ["Be Unique!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=Q7iRXp-VRZA",
+        watchTarget: 130
+      },
+             {
+        questId: "Video 44",
+        title: "🎬📚 The Importance of Being Earnest by Oscar Wilde 📚🎬 Little Cecily✨",
+        q: "Make an impact!",
+        options: ["Be Unique!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=L94NjthXdJU",
+        watchTarget: 180
+      },
+            {
+        questId: "Video 8",
+        title: "📚 Antifragility by Nassim Taleb 📚Insights✨",
+        q: "What does not kill you makes you STRONGER!",
+        options: ["Ever tried. Ever failed. No matter. Try again. Fail again. Fail better!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=8Uct4T3ckuQ",
+        watchTarget: 120
+      },
+            {
+        questId: "Video 27",
+        title: "📚Live While You're Alive by Shiv Khera📚 Book Insight✨",
+        q: "Plan for the unplanned. Effective communication is all about effective planning.",
+        options: ["You should always be prepared!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=xa_e6qCNrNY",
+        watchTarget: 140
+      },
+            {
+        questId: "Video 11",
+        title: "📚 Atomic Habits by James Clear 📚 Insights✨",
+        q: "Big achievements start with tiny quests",
+        options: ["Consistency is your secret superpower."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=Dyliijbw_aQ",
+        watchTarget: 160
+      }, 
+{
+        questId: "Video 69",
+        title: "Rebranding Air ✨",
+        q: "Brainstorming comes first and then comes Reframing!",
+        options: ["Reframing is your superpower!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=fREs3sE-4DM",
+        watchTarget: 120
+      },
+{
+        questId: "Video 68",
+        title: "Rebranding Pepsi ✨",
+        q: "Brainstorming comes first and then comes Reframing!",
+        options: ["Reframing is your superpower!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=ERz_lpu-fNU",
+        watchTarget: 120
+      },
+            {
+        questId: "Video 66",
+        title: "Rebranding Snickers ✨",
+        q: "Brainstorming comes first and then comes Reframing!",
+        options: ["Reframing is your superpower!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=4uyo9NnX_bU",
+        watchTarget: 160
+      }, 
+      {
+        questId: "Video 15",
+        title: "🎧 They don't really care about us ♬ Michael Jackson ♬",
+        q: "Your effort is yours.",
+        options: ["You are responsible for your own growth."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=zFUvTE7TK6s",
+        watchTarget: 280
+      },
+            {
+        questId: "Video 17",
+        title: "🎧 The Show Must Go On! ♬ Queen ♬",
+        q: "My smile, still, stays on!",
+        options: ["Never stop trying. Never stop smiling. Never stop growing!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=uKLMYZlbIb8",
+        watchTarget: 240
+      }, 
+      {
+        questId: "Video 55",
+        title: "🎧 I Want it All! ♬ Queen ♬",
+        q: "I Want It All!",
+        options: ["I Want It NOW!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=9NH87JoJ8Pk",
+        watchTarget: 240
+      }, 
+       {
+        questId: "Video 56",
+        title: "🎧 We are the Champions! ♬ Queen ♬",
+        q: "We are the champions, my friends And we'll keep on fighting 'til the end!",
+        options: [" I need to go on and on, and on, and on!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=reh4LD8tdX8",
+        watchTarget: 240
+      },  
+      {
+        questId: "Video 57",
+        title: "🎧 Thank You For The Music! ♬ ABBA ♬",
+        q: "Thanks for all the joy they're bringing!",
+        options: ["What are you grateful for?"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=6N8Oyg42jFA",
+        watchTarget: 240
+      },  
+      {
+        questId: "Video 58",
+        title: "🎧 I Want To Break Free! ♬ Queen ♬",
+        q: "My smile, still, stays on!",
+        options: ["Never stop trying. Never stop smiling. Never stop growing!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=t-AHPemYAps",
+        watchTarget: 240
+      },
+      
+      {
+        questId: "Video 59",
+        title: "🎧 Congratulations and celebrations! ♬ Cliff Richard ♬",
+        q: "Congratulations and celebrations!",
+        options: ["I want the world to know I'm as happy as can be!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=8TTk55YFIwI",
+        watchTarget: 240
+      },
+      {
+        questId: "Video 60",
+        title: "🎧 Yesterday! ♬ Beatles ♬",
+        q: "Today's you is the yesterday you long for!",
+        options: ["What you are today determines how you look back at yesterday, tomorrow!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=NajvYJab6Pg",
+        watchTarget: 240
+      },
+      {
+        questId: "Video 61",
+        title: "🎧 Who Wants to Live Forever! ♬ Queen ♬",
+        q: "We give meaning to life!",
+        options: ["The answer to life, the universe and everything is 42. What is the question?"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=dZydpgAXpHg",
+        watchTarget: 240
+      },
+        {
+        questId: "Video 13",
+        title: "Nike ✨",
+        q: "Doing is what is important!",
+        options: ["Just start. That is enough. The first step makes the second step easy."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=yTotCREiTRU",
+        watchTarget: 120
+      },
+     {
+        questId: "Video 54",
+        title: "Dunning-Kruger✨TED-Ed✨ ",
+        q: "Stay hungry!",
+        options: ["Stay foolish."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=pOLmD_WVY-E",
+        watchTarget: 300
+      },
+{
+        questId: "Video 53",
+        title: "Dunning-Kruger ✨Neil Degrasse Tyson✨",
+        q: "A little knowledge is dangerous!",
+        options: ["Stay hungry. Stay foolish."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=h196NrTkXnY",
+        watchTarget: 120
+      },
+      {
+        questId: "Video 16",
+        title: "Yes, and ✨",
+        q: "Reframe with a positive growth mindset!",
+        options: ["See the best in everyone and they will see the best in you!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=h8ZJSAyJ_bQ",
+        watchTarget: 60
+      },
+            {
+        questId: "Video 18",
+        title: "Emotions are contagious✨",
+        q: "People will not remember what you said. They will remember how you made them feel!",
+        options: ["Make them feel good!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=ADVPPL2ASeM",
+        watchTarget: 110
+      },
+            {
+        questId: "Video 19",
+        title: "What is thinking?✨",
+        q: "Talking to yourself is the easiest form of thinking!",
+        options: ["Writing is even better!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=lUQjS7JS_Es",
+        watchTarget: 80
+      },
+             {
+        questId: "Video 20",
+        title: "Learn to write✨",
+        q: "Writing is the easiest way to critically analyse your thoughts immediately",
+        options: ["Writing makes you a better thinker and a better communicator."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=CPY3dG9dcC8",
+        watchTarget: 120
+      },
+             {
+        questId: "Video 21",
+        title: "Fight, Think, Write like Dostoevsky✨",
+        q: "You have to be prepared to defeat the best arguments against you",
+        options: ["Become stronger by fighting those who are stronger."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=1QrAFuQGcIU",
+        watchTarget: 120
+      },
+             {
+        questId: "Video 22",
+        title: "Focus on the effort✨",
+        q: "Your future self will get the credit",
+        options: ["You focus on your effort"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=h9IVesM8kec",
+        watchTarget: 120
+      },
+             {
+        questId: "Video 23",
+        title: "Vocal variety✨",
+        q: "Make the listeners feel the feeling in your voice!",
+        options: ["Make them dance to your rhythm of your speech."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=i1rmvL0GKAI",
+        watchTarget: 120
+      },
+             {
+        questId: "Video 24",
+        title: "Stories change people✨",
+        q: "Stories convey your point of view",
+        options: ["Effective communication is conveying your POV effectively"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=HnqxWXNJPvs",
+        watchTarget: 110
+      },
+             {
+        questId: "Video 25",
+        title: "Spotlight Effect✨",
+        q: "We care more about ourselves",
+        options: ["Others care more about themselves too"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=D0h9Y0upWoQ",
+        watchTarget: 120
+      },
+             {
+        questId: "Video 26",
+        title: "READ!✨",
+        q: "Meaning is automatically absorbed from the context",
+        options: ["You automatically become fluent"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=7wc12g1rYj8",
+        watchTarget: 140
+      },
+             {
+        questId: "Video 28",
+        title: "Ideal Friend✨",
+        q: "Be your best friend.",
+        options: ["Focus on understanding yourself"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=HvBZ3DZdNnA",
+        watchTarget: 120
+      },
+             {
+        questId: "Video 29",
+        title: "Mental Preparation✨",
+        q: "Deliberately thinking is almost as effective as deliberately practising",
+        options: ["Deliberate thinking is deliberate planning"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=yOMcjwx2cgk",
+        watchTarget: 120
+      },
+             {
+        questId: "Video 30",
+        title: "Steve Jobs introduces the iPhone✨",
+        q: "Engage the audience",
+        options: ["Highlight Key Takeaways with Repetition"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=H4ojTjTwywA",
+        watchTarget: 120
+      },
+             {
+        questId: "Video 31",
+        title: "🪶 Roll the Dice by Charles Bukowski 📜 Poetry✨",
+        q: "Give your complete attention to everything you do.",
+        options: ["Be passionate about what you do. Make that a part of your identity."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=36CYMdFmDeQ",
+        watchTarget: 250
+      },
+             {
+        questId: "Video 42",
+        title: "🪶 Invictus by William Ernest Henley 📜 Poetry✨",
+        q: "I am the captain of my soul.",
+        options: ["I am the master of my fate"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=vUV2xyA339c",
+        watchTarget: 180
+      },  
+             {
+        questId: "Video 43",
+        title: "🪶 If by Rudyard Kipling 📜 Poetry✨",
+        q: "If you can fill the unforgiving minute With sixty seconds' worth of distance run",
+        options: ["Yours is the Earth and everything that's in it"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=tK4HDCIr_E8",
+        watchTarget: 400
+      },  
+   {
+        questId: "Video 51",
+        title: "Cogito Ergo Sum ✨Stephen Fry✨",
+        q: "What am I teaching in class? How to think!",
+        options: ["WE THINK!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=0A6UKoMcE10",
+        watchTarget: 240
+      },
+   {
+        questId: "Video 37",
+        title: "Alan Watts ✨ Work as Play ✨",
+        q: "You do not need motivation to do what you love!",
+        options: ["We take playing seriously, don't we?"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=p_SnV2oiHnY",
+        watchTarget: 120
+      },
+   {
+        questId: "Video 36",
+        title: "Tony Robbins Focus ✨",
+        q: "Your life is not your life immediately grabs your attention and makes you listen",
+        options: ["Where you focus on, grows!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=V66xMaH8IJ8",
+        watchTarget: 120
+      },
+         {
+        questId: "Video 2",
+        title: "👑 The Power of Words",
+        q: "Believe you can speak as well as Mohammed Qahtani, and you are halfway there!",
+        options: ["Live and Breathe English!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=xwbI8VOsDTo",
+        watchTarget: 600
+      },
+      {
+        questId: "Video 3",
+        title: "👑 Book Review 📚 Grit 📖",
+        q: "I am a strong person! I NEVER GIVE UP! I ALWAYS KEEP TRYING! ",
+        options: ["GRIT."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=NquuITL9-ZA",
+        watchTarget: 500
+      },
+      
+   {
+        questId: "Video 52",
+        title: "👑 René Descartes 📚 School of Life✨",
+        q: "What am I teaching in class? How to think!",
+        options: ["WE THINK!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=CAjWUrwvxs4",
+        watchTarget: 500
+      },
+      {
+        questId: "Video 39",
+        title: "👑 Book Review 📚 The Psychology of Money 📖",
+        q: "Invest in yourself early.",
+        options: ["Knowledge gained today becomes freedom and opportunity tomorrow."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=tmTysUZN36M",
+        watchTarget: 400
+      },
+       {
+        questId: "Video 71",
+        title: "👑 TED 👽 The skill of self confidence 👽",
+        q: "10,000 hours of practise makes you an expert",
+        options: ["Focus on being your harshest self critic and your best cheerleader!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=w-HYZv6HzAs",
+        watchTarget: 800
+      },
+       {
+        questId: "Video 41",
+        title: "👑 TED 👽 Why humans run the world 👽 Yuval Noah Harari",
+        q: "Shared Beliefs Shape Society",
+        options: ["Stories give meaning to human actions."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=nzj7Wg4DAbs",
+        watchTarget: 1020
+      },
+       {
+        questId: "Video 45",
+        title: "👑 How to Use Logic to Make Better Arguments 👽 Alex O'Connor & Joe Folley 👽",
+        q: "Celebrate logic. Let your words dance with such brilliance that even your fiercest opponents cannot help but love the beauty of your reasoning!",
+        options: ["In the glow of reason, enmity turns into admiration! I know this is a long video. So, I have set a 10 minute limit to submit and get your streak. But be not satisfied. You should come back to it again and again and again!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=thtomlDVBPI",
+        watchTarget: 600
+      },  
+        {
+        questId: "Video 46",
+        title: "👑 How to DESTROY Anyone in an Argument 👽 Joe Folley 👽",
+        q: "Celebrate logic. Let your words dance with such brilliance that even your fiercest opponents cannot help but love the beauty of your reasoning!",
+        options: ["I know this is a long video. So, I have set a 10 minute limit to submit and get your streak. But be not satisfied. You should come back to it again and again and again!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=3-uat0-azYE",
+        watchTarget: 600
+      },
+      {
+        questId: "Video 47",
+        title: "👑 Parrots, the Universe and Everything 👽 Douglas Adams 👽",
+        q: "Celebrate logic. Let your words dance with such brilliance that even your fiercest opponents cannot help but love the beauty of your reasoning!",
+        options: ["I know this is a long video. So, I have set a 10 minute limit to submit and get your streak. But be not satisfied. You should come back to it again and again and again!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=_ZG8HBuDjgc",
+        watchTarget: 600
+      },
+      {
+        questId: "Video 50",
+        title: "👑 TED Perspective is everything 👽 Rory Sutherland 👽",
+        q: "Rory is a name that is familiar to you all! Worship the man. Do not worship the man. The opposite of a good idea is another good idea!",
+        options: ["Constant reframing, my dear child! CONSTANT REFRAMING!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=iueVZJVEmEs",
+        watchTarget: 1080
+      },
+      {
+        questId: "Video 49",
+        title: "👑 Britain Does Owe Reparations 👽 Dr Shashi Tharoor MP 👽",
+        q: "Notice the rhythm of thought and the flow of logic. Marvel at the seamless stitching of words!",
+        options: ["Analyse how he builds individual words into sentences, and mark how those sentences weave together into larger ideas!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=f7CW7S0zxv4",
+        watchTarget: 900
+      },
+      {
+        questId: "Video 48",
+        title: "👑 TED Why the universe seems so strange 👽 Richard Dawkins 👽",
+        q: "You are in for a treat! Allow Dawkins to sweep you into the strangeness and splendour of the universe, as he did for me.",
+        options: ["Take note of how Dawkins captivates you! Look at the way he builds his sentences."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=1APOxsp1VFw",
+        watchTarget: 1320
+      },
+             {
+        questId: "Video 35",
+        title: "👑 Growth Mindset",
+        q: "We celebrate failure! We celebrate effort!",
+        options: ["Perfection is an illusion. The pursuit of perfection is real."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=KUWn_TJTrnU",
+        watchTarget: 500
+      },
+       {
+        questId: "Video 62",
+        title: "👑 The Little Prince 📚 Audiobook 📚 👽 Antoine de Saint Exupery 👽",
+        q: "All grown-ups were once children but only few of them remember it.",
+        options: ["And now here is my secret, a very simple secret: It is only with the heart that one can see rightly. What is essential is invisible to the eye."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=APG1upS8LDw",
+        watchTarget: 1500
+      },
+             {
+        questId: "Video 63",
+        title: "👑 🎧 🎙️ Elon Musk on Joe Rogan's Podcast",
+        q: "it is the mark of an educated mind to be able to entertain a thought without accepting it. Aristotle!",
+        options: ["Listen with curiosity. Speak with honesty. Act with integrity. The greatest problem with communication is we don't listen to understand. We listen to reply. When we listen with curiosity, we don't listen with the intent to reply. We listen for what's behind the words. Roy T. Bennett."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=sSOxPJD-VNo",
+        watchTarget: 1500
+      },
+             {
+        questId: "Video 64",
+        title: "👑 🎧 🎙️ Elon Musk on Lex Fridman's Podcast",
+        q: " Listen most curiously to 00.33.00 to 00.45.00. It is the mark of an educated mind to be able to entertain a thought without accepting it. Aristotle!",
+        options: ["Listen with curiosity. Speak with honesty. Act with integrity. The greatest problem with communication is we don't listen to understand. We listen to reply. When we listen with curiosity, we don't listen with the intent to reply. We listen for what's behind the words. Roy T. Bennett."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=JN3KPFbWCy8",
+        watchTarget: 1500
+      },
+{
+        questId: "Video 70",
+        title: "👑 The Power of INDIFFERENCE 📚 Marcus Aurelius",
+        q: "The happiness of your life depends on the quality of your thoughts",
+        options: ["Everything we see is a perspective and not the truth."],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=wvRjC5ZgZgo",
+        watchTarget: 700
+      },
+{
+        questId: "Video 65",
+        title: "👑 What is Cryptocurrency and How Does it Work?",
+        q: "What is Cryptocurrency and How Does it Work?",
+        options: ["Thank you, Mr Karthikeyan!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=Zoz9gvhLgpM",
+        watchTarget: 700
+      },
+{
+        questId: "Video 65",
+        title: "👑 Why You Need To Put In 10,000 Hours 👑 ",
+        q: "10,000 hours of deliberate practice makes you an expert",
+        options: ["It is impossible to find a person who is an expert who does not like what they do!"],
+        correct: 0,
+        video: "https://www.youtube.com/watch?v=67R5IalhpqQ",
+        watchTarget: 500
       }
+
+
+
     ];
 
-    let current = 0;
-    let correctCount = 0;
-    let totalWrongGuesses = 0;
-    let startTime;
-    let timerInterval;
-    let playerName = "";
-    let guessesPerQuestion = [];
-
-    // Timer pause/resume
-    let timerElapsedWhenPaused = 0;
-    let timerPaused = false;
-    let timerLastPause = 0;
-
-    // Next countdown with pause/resume
-    let nextCountdown = 480;
-    let nextCountdownEnd = null;
-    let nextCountdownInterval = null;
-    let nextCountdownPaused = false;
-    let nextCountdownRemaining = 0;
+    let current = 0, totalWrongGuesses = 0;
+    let startTime, timerInterval, playerName = "", guessesPerQuestion = [];
+    let player, videoWatchTime = 0, videoWatchInterval = null;
+    let currentQuestId = "";
+    let WATCH_TARGET = 0;
 
     const questionEl = document.getElementById("question");
     const optionsEl = document.getElementById("options");
@@ -157,152 +775,124 @@
     const restartBtn = document.getElementById("restartBtn");
     const videoContainer = document.getElementById("videoContainer");
     const nextBtn = document.getElementById("nextBtn");
+    const directoryEl = document.getElementById("directory");
 
-    function beginQuiz() {
+    function showDirectory() {
       const nameField = document.getElementById("nameInput");
-      if (!nameField.value.trim()) {
-        alert("Please enter your name!");
-        return;
-      }
+      if (!nameField.value.trim()) { alert("Please enter your name!"); return; }
       playerName = nameField.value.trim();
       document.getElementById("nameForm").style.display = "none";
-      document.getElementById("quizContent").style.display = "block";
-      startQuiz();
+      directoryEl.style.display = "block";
+
+      // Generate buttons
+      const list = document.getElementById("videoList");
+      list.innerHTML = "";
+      quizData.forEach((data, idx) => {
+        const btn = document.createElement("button");
+        btn.innerText = data.title;
+        btn.onclick = () => startQuiz(idx);
+        list.appendChild(btn);
+      });
     }
 
-    function startQuiz() {
-      current = 0;
-      correctCount = 0;
-      totalWrongGuesses = 0;
-      guessesPerQuestion = [];
+    function startQuiz(index) {
+      directoryEl.style.display = "none";
+      document.getElementById("quizContent").style.display = "block";
+
+      current = index;
+      totalWrongGuesses = 0; guessesPerQuestion = [];
       startTime = Date.now();
-      timerElapsedWhenPaused = 0;
-      timerPaused = false;
-      timerEl.innerText = "⏳ Time: 0s";
+      videoWatchTime = 0;
+      currentQuestId = quizData[index].questId;
+      WATCH_TARGET = quizData[index].watchTarget;
+
+      timerEl.innerText = "⏳ Time: 0s | 🎬 Watched: 0s";
       wrongCounterEl.innerText = `❌ Wrong Attempts: 0`;
       scoreCard.innerHTML = "";
       restartBtn.style.display = "none";
       loadQuestion();
-      startTimer();
-    }
-
-    function convertToEmbed(url) {
-      return url.replace("watch?v=", "embed/");
     }
 
     function loadQuestion() {
-      if (current >= quizData.length) {
-        return showScore();
-      }
       const data = quizData[current];
       guessesPerQuestion[current] = 0;
 
       questionEl.innerText = data.q;
-      progressTracker.innerText = `📍 Question ${current + 1} of ${quizData.length}`;
+      progressTracker.innerText = `📍 Question 1 of 1`;
 
-      const embedUrl = convertToEmbed(data.video);
-      videoContainer.innerHTML = `
-        <iframe
-          width="100%"
-          height="315"
-          src="${embedUrl}"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen>
-        </iframe>
-      `;
+      videoContainer.innerHTML = `<div id="ytPlayer"></div>`;
+      const videoId = data.video.split("v=")[1];
+      player = new YT.Player("ytPlayer", {
+        height: "315", width: "100%", videoId: videoId,
+        events: { onStateChange: onPlayerStateChange },
+        playerVars: { autoplay: 0, controls: 1 }
+      });
 
       optionsEl.innerHTML = "";
-      data.options.forEach((option, index) => {
+      data.options.forEach((option) => {
         const btn = document.createElement("button");
         btn.innerText = option;
-        const correctAnswerString = data.options[data.correct];
-        btn.onclick = () => handleAnswer(btn, correctAnswerString);
+        btn.onclick = () => handleAnswer(btn, data.options[data.correct]);
         optionsEl.appendChild(btn);
       });
 
       nextBtn.disabled = true;
-      nextCountdown = 480;
-      nextCountdownEnd = Date.now() + nextCountdown * 1000;
-      updateNextCountdown();
-      clearInterval(nextCountdownInterval);
-      nextCountdownInterval = setInterval(updateNextCountdown, 1000);
+      nextBtn.innerText = `Next ➡️ (Watch ${WATCH_TARGET}s to unlock)`;
     }
 
     function handleAnswer(button, correctAnswer) {
       guessesPerQuestion[current]++;
       const isCorrect = button.innerText === correctAnswer;
-
-      if (isCorrect) {
-        correctCount++;
-        button.classList.add("correct");
-      } else {
-        totalWrongGuesses++;
-        wrongCounterEl.innerText = `❌ Wrong Attempts: ${totalWrongGuesses}`;
-        button.classList.add("wrong");
-        setTimeout(() => {
-          button.classList.remove("wrong");
-        }, 500);
-      }
+      if (isCorrect) { correctCount++; button.classList.add("correct"); }
+      else { totalWrongGuesses++; wrongCounterEl.innerText = `❌ Wrong Attempts: ${totalWrongGuesses}`; button.classList.add("wrong"); setTimeout(() => button.classList.remove("wrong"), 500); }
     }
 
-    nextBtn.onclick = () => {
-      current++;
-      loadQuestion();
-    };
+    nextBtn.onclick = () => showScore();
 
     function showScore() {
-      clearInterval(timerInterval);
-      clearInterval(nextCountdownInterval);
-      const totalTime = Math.floor((Date.now() - startTime - timerElapsedWhenPaused) / 1000);
-      questionEl.innerText = "🎉 Quiz Completed!";
-      optionsEl.innerHTML = "";
-      progressTracker.innerText = "";
-      videoContainer.innerHTML = "";
-      nextBtn.style.display = "none";
+      clearInterval(timerInterval); clearInterval(videoWatchInterval);
+      const qc = document.getElementById("quizContent");
+      Array.from(qc.children).forEach(child => {
+        if (child.id !== 'scoreCard' && child.id !== 'restartBtn') {
+          child.style.display = 'none';
+        }
+      });
+      qc.style.display = 'block';
+      scoreCard.style.display = 'block';
       scoreCard.innerHTML = `
+        <h2>🎉 Quest Completed!</h2>
         <p>👤 Player: ${playerName}</p>
-        <p>✅ Correct Answers: ${correctCount} / ${quizData.length}</p>
-        <p>❌ Wrong Attempts: ${totalWrongGuesses}</p>
-        <p>⏱️ Time Taken: ${totalTime} seconds</p>
-        <p>📝 Guesses per Question: ${guessesPerQuestion.join(", ")}</p>
+        <p>🏆 Points Earned: 10</p>
+        <p>⏱️ Video Watched: ${videoWatchTime}s</p>
       `;
       restartBtn.style.display = "inline-block";
 
+      // Send data to Google Sheet
       fetch("https://script.google.com/macros/s/AKfycbwseKlRX_H_8BO7ZW30JZVhUMNq1iimlTwvINSNa8CsInxBNs4Iy0MLJqNzPIWpxakJ/exec", {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          questId: "Quest 23",
+          questId: currentQuestId,
           name: playerName,
-          correct: correctCount,
-          wrong: totalWrongGuesses,
-          time: totalTime,
-          guesses: guessesPerQuestion
+          correct: 10,
+          time: videoWatchTime
         })
       });
     }
 
-    function startTimer() {
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        if (timerPaused) return;
-        const elapsed = Math.floor((Date.now() - startTime - timerElapsedWhenPaused) / 1000);
-        timerEl.innerText = `⏳ Time: ${elapsed}s`;
-      }, 1000);
-    }
-
-    function updateNextCountdown() {
-      if (nextCountdownPaused) return;
-      let remaining = Math.floor((nextCountdownEnd - Date.now()) / 1000);
-      if (remaining <= 0) {
-        clearInterval(nextCountdownInterval);
-        nextBtn.disabled = false;
-        nextBtn.innerText = "Next ➡️";
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        if (!videoWatchInterval) {
+          videoWatchInterval = setInterval(() => {
+            videoWatchTime++;
+            timerEl.innerText = `⏳ Time: ${Math.floor((Date.now() - startTime)/1000)}s | 🎬 Watched: ${videoWatchTime}s`;
+            if (videoWatchTime >= WATCH_TARGET) {
+              nextBtn.disabled = false;
+              nextBtn.innerText = "Next ➡️";
+            }
+          }, 1000);
+        }
       } else {
-        nextBtn.disabled = true;
-        nextBtn.innerText = `Next ➡️ (wait ${remaining}s)`;
+        clearInterval(videoWatchInterval); videoWatchInterval = null;
       }
     }
 
@@ -311,33 +901,29 @@
       document.getElementById("nameForm").style.display = "block";
       document.getElementById("nameInput").value = "";
       nextBtn.style.display = "inline-block";
+      Array.from(document.getElementById("quizContent").children).forEach(c => c.style.display = "");
     };
-
-    document.addEventListener("visibilitychange", function() {
-      if (document.visibilityState === "hidden") {
-        if (!timerPaused && timerInterval) {
-          timerPaused = true;
-          timerLastPause = Date.now();
-        }
-        if (!nextCountdownPaused && nextCountdownInterval) {
-          nextCountdownPaused = true;
-          nextCountdownRemaining = Math.floor((nextCountdownEnd - Date.now()) / 1000);
-          clearInterval(nextCountdownInterval);
-        }
-      } else if (document.visibilityState === "visible") {
-        if (timerPaused && timerInterval) {
-          const pauseDuration = Date.now() - timerLastPause;
-          timerElapsedWhenPaused += pauseDuration;
-          timerPaused = false;
-        }
-        if (nextCountdownPaused) {
-          nextCountdownEnd = Date.now() + nextCountdownRemaining * 1000;
-          nextCountdownPaused = false;
-          updateNextCountdown();
-          nextCountdownInterval = setInterval(updateNextCountdown, 1000);
-        }
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    // pause timers
+    clearInterval(videoWatchInterval);
+    videoWatchInterval = null;
+  } else {
+    // resume if video is still playing
+    if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
+      if (!videoWatchInterval) {
+        videoWatchInterval = setInterval(() => {
+          videoWatchTime++;
+          timerEl.innerText = `⏳ Time: ${Math.floor((Date.now() - startTime)/1000)}s | 🎬 Watched: ${videoWatchTime}s`;
+          if (videoWatchTime >= WATCH_TARGET) {
+            nextBtn.disabled = false;
+            nextBtn.innerText = "Next ➡️";
+          }
+        }, 1000);
       }
-    });
+    }
+  }
+});
   </script>
 </body>
 </html>
