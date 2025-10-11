@@ -116,6 +116,11 @@
   <input type="text" id="nameInput" placeholder="Enter your name" />
   <button onclick="beginQuiz()">Start Quiz</button>
 </div>
+<button onclick="window.open('https://andrewveda.github.io/videoquest/', '_blank')" 
+        style="margin-top: 0.7rem; background-color: #343454;">
+  If you want to watch in Fullscreen, head to my GitHub. Happy immersion! ✨🎶🎧
+</button>
+
 
 
     <!-- Step 2: Directory -->
@@ -202,6 +207,15 @@ function showCategory(category) {
   const list = document.getElementById("videoList");
   list.innerHTML = "";
 
+  // 🔹 Back Button
+  const backBtn = document.createElement("button");
+  backBtn.innerText = "⬅️ Back to Categories";
+  backBtn.style.background = "linear-gradient(135deg, #3b3b5e, #5c4f63)";
+  backBtn.style.fontWeight = "bold";
+  backBtn.onclick = showDirectory;
+  list.appendChild(backBtn);
+
+  // 🔹 Show videos in selected category
   const filteredData = quizData.filter(q => q.category === category);
   filteredData.forEach((data, idx) => {
     const btn = document.createElement("button");
