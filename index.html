@@ -79,6 +79,11 @@
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+#wrongCounter, #progressTracker {
+  display: none !important;
+}
+
   </style>
 </head>
 <body>
@@ -116,12 +121,6 @@
   <input type="text" id="nameInput" placeholder="Enter your name" />
   <button onclick="beginQuiz()">Start Quiz</button>
 </div>
-<button onclick="window.open('https://andrewveda.github.io/videoquest/', '_blank')" 
-        style="margin-top: 0.7rem; background-color: #343454;">
-  If you want to watch in Fullscreen, head to my GitHub. Happy immersion! ✨🎶🎧
-</button>
-
-
 
     <!-- Step 2: Directory -->
     <div id="directory" style="display:none;">
@@ -392,7 +391,7 @@ function loadQuestionFromData(data) {
         if (!videoWatchInterval) {
           videoWatchInterval = setInterval(() => {
             videoWatchTime++;
-            timerEl.innerText = `⏳ Time: ${Math.floor((Date.now() - startTime)/1000)}s | 🎬 Watched: ${videoWatchTime}s`;
+           timerEl.innerText = `🎬 Watched: ${videoWatchTime}s`;
             if (videoWatchTime >= WATCH_TARGET) {
               nextBtn.disabled = false;
               nextBtn.innerText = "Next ➡️";
